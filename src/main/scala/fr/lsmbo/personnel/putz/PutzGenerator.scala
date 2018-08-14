@@ -9,10 +9,11 @@ import org.apache.poi.xssf.usermodel.XSSFSheet
 import scala.collection.mutable.ArrayBuffer
 import fr.lsmbo.personnel.Person
 import java.io.FileOutputStream
-import fr.lsmbo.personnel.Location
+import fr.lsmbo.personnel.LocationList
 
 class PutzGenerator {
-  
+
+  // TODO: make sure that "Elimination day" is fairly randomized (not everytime the same person)
   
   // the excel file must exist and have a template sheet !
   if (!MyConfig.putzOutputFile.exists) {
@@ -41,10 +42,13 @@ class PutzGenerator {
 
   // make sure that there is enough people for each task
   if (getLabRoomPutzablePeople.size < 17) {
-    throw new Exception("Not enough Lab People")
+    throw new Exception("Not enough people to putz the lab rooms")
   }
   if (getCoffeeRoomPutzablePeople(None).size < 2) {
-    throw new Exception("Not enough Coffee People")
+    throw new Exception("Not enough people to putz the coffee rooms")
+  }
+  if (getTowelsPutzablePeople.size < 2) {
+    throw new Exception("Not enough people to putz the towels")
   }
   
   
@@ -67,12 +71,15 @@ class PutzGenerator {
     sheet.getRow(10).getCell(column).setCellValue(labPeople(14).selectMe + "\n" + labPeople(15).selectMe)
     sheet.getRow(11).getCell(column).setCellValue(labPeople(16).selectMe + "\n" + labPeople(17).selectMe)
     // define coffee people
-    sheet.getRow(12).getCell(column).setCellValue(getCoffeeRoomPutzablePeople(Some(Location.R2))(0).selectMe)
-    sheet.getRow(13).getCell(column).setCellValue(getCoffeeRoomPutzablePeople(Some(Location.R5))(0).selectMe)
+    sheet.getRow(12).getCell(column).setCellValue(getCoffeeRoomPutzablePeople(Some(LocationList.R2)).head.selectMe)
+    sheet.getRow(13).getCell(column).setCellValue(getCoffeeRoomPutzablePeople(Some(LocationList.R5)).head.selectMe)
+    sheet.getRow(14).getCell(column).setCellValue(getTowelsPutzablePeople(0).selectMe)
     column += 1
   })
   
-  
+  // print a summary for the creator, in case there should be manual edition
+  println("Putz people for lab rooms:")
+  MyConfig.people.filter(_.putzLabRooms).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}"))
     
   // write, close and quit
   val outputStream = new FileOutputStream(MyConfig.putzOutputFile)
@@ -86,7 +93,7 @@ class PutzGenerator {
     var currentMonthNumber = dateFormatter.format(Calendar.getInstance.getTime).toInt
     if (!MyConfig.startCurrentMonth) currentMonthNumber += 1
     // return an array of month names
-    val monthPerNumber = Map(1 -> "Janvier", 2 -> "Fevrier", 3 -> "Mars", 4 -> "Avril", 5 -> "Mai", 6 -> "Juin", 7 -> "Juillet", 8 -> "Aout", 9 -> "Septembre", 10 -> "Octobre", 11 -> "Novembre", 12 -> "Decembre")
+    val monthPerNumber = Map(1 -> "Janvier", 2 -> "Février", 3 -> "Mars", 4 -> "Avril", 5 -> "Mai", 6 -> "Juin", 7 -> "Juillet", 8 -> "Août", 9 -> "Septembre", 10 -> "Octobre", 11 -> "Novembre", 12 -> "Decembre")
     val monthes = new ArrayBuffer[String]
     for (i <- currentMonthNumber until currentMonthNumber + MyConfig.numberOfMonthes) {
 //      println(s"monthPerNumber.isDefinedAt($i)=${monthPerNumber.isDefinedAt(i)}")
@@ -100,6 +107,7 @@ class PutzGenerator {
   }
 
   private lazy val year: String = {
+    // FIXME there's a bug when generating the putz planning at the end of the year, this method will return the current year instead
     val dateFormatter = new SimpleDateFormat("yyyy")
     dateFormatter.format(Calendar.getInstance.getTime)
   }
@@ -108,28 +116,18 @@ class PutzGenerator {
     // shuffle people
     val shuffledPeople = util.Random.shuffle(p.toList)
     // return this list sorted by counter
-    shuffledPeople.sortBy(_.counter).toArray
+    shuffledPeople.sortBy(_.putzCounter).toArray
   }
 
-  private def getLabRoomPutzablePeople: Array[Person] = shuffleAndOrder(MyConfig.people.filter(_.labRooms))
+  private def getLabRoomPutzablePeople: Array[Person] = shuffleAndOrder(MyConfig.people.filter(_.putzLabRooms))
 
-//  private def getLabRoomPutzablePeople(_building: String = ""): Array[Person] = {
-//    if (_building.equals(""))
-//      shuffleAndOrder(MyConfig.people.filter(_.labRooms))
-//    else
-//      shuffleAndOrder(MyConfig.people.filter(_.labRooms).filter(_.location.equals(_building)))
-//  }
-
-//  private def getCoffeeRoomPutzablePeople(_building: String = ""): Array[Person] = {
-//    if (_building.equals(""))
-//      shuffleAndOrder(MyConfig.people.filter(_.coffeeRooms))
-//    else
-//      shuffleAndOrder(MyConfig.people.filter(_.coffeeRooms).filter(_.location.equals(_building)))
-//  }
-  private def getCoffeeRoomPutzablePeople(locationOpt: Option[Location.Value]): Array[Person] = {
-    if(!locationOpt.isDefined)
-      shuffleAndOrder(MyConfig.people.filter(_.coffeeRooms))
+  private def getCoffeeRoomPutzablePeople(locationOpt: Option[LocationList.Value]): Array[Person] = {
+    if(locationOpt.isDefined)
+      shuffleAndOrder(MyConfig.people.filter(p => p.putzCoffeeRooms && p.location.value.equals(locationOpt.get)))
     else
-      shuffleAndOrder(MyConfig.people.filter(_.coffeeRooms).filter(_.location.equals(locationOpt.get)))
+      shuffleAndOrder(MyConfig.people.filter(_.putzCoffeeRooms))
   }
+  
+  private def getTowelsPutzablePeople: Array[Person] = shuffleAndOrder(MyConfig.people.filter(_.putzTowels))
+  
 }

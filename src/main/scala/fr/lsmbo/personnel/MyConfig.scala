@@ -11,7 +11,8 @@ object MyConfig {
   lazy val config: Config = ConfigFactory.load(this.getClass().getClassLoader(), "application.conf")
 
 //  lazy val peopleFile: File = new File(config.getString("people.file.path"))
-  lazy val peopleFile: URL = this.getClass().getClassLoader().getResource(config.getString("people.file.path"))
+//  lazy val peopleFile: URL = this.getClass().getClassLoader().getResource(config.getString("people.file.path"))
+  lazy val peopleFile: URL = new File("classes/"+config.getString("people.file.path")).toURI.toURL()
   
   lazy val putzOutputFile: File = {
     try {
@@ -58,7 +59,8 @@ object MyConfig {
   
   lazy val trombiPictureFolder: File = {
     try {
-      new File(this.getClass().getClassLoader().getResource(config.getString("trombi.picture.folder")).getPath)
+      //new File(this.getClass().getClassLoader().getResource(config.getString("trombi.picture.folder")).getPath)
+      new File(config.getString("trombi.picture.folder"))
     } catch {
       case e: Exception =>
         println(s"Error on trombiPictureFolder: ${e.getMessage}")
@@ -66,38 +68,38 @@ object MyConfig {
     }
   }
   
-  lazy val defaultPicture: File = {
-    try { 
-      new File(trombiPictureFolder, config.getString("trombi.picture.default"))
-    } catch {
-      case e: Exception => new File("")
-    }
-  }
+  lazy val defaultPicture: File = new File("classes/Portrait_placeholder.png")
   
-  
- 
-  lazy val people: Array[Person] = {
+  lazy val allPeople: Array[Person] = {
     val personnel = new ArrayBuffer[Person]
     val bufferedSource = io.Source.fromURL(MyConfig.peopleFile)
+    var firstLine = true
     for (line <- bufferedSource.getLines) {
-      if(!line.startsWith("lastName")) {
+      if(firstLine) {
+        firstLine = false
+      } else {
         val cols = line.split("\t").map(_.trim)
         try {
-          personnel += new Person(
-              firstName = cols(1).toUpperCase(), lastName = cols(0), initials = cols(2).toUpperCase(),
-              category = Category.withNameOpt(cols(3)).getOrElse(Category.UNKNOWN),
-              status = Status.withNameOpt(cols(4)).getOrElse(Status.UNKNOWN),
-              location = Location.withNameOpt(cols(5)).getOrElse(Location.UNKNOWN),
-              room = cols(6).toInt, mail = cols(7), phone = cols(8),
-              labRooms = cols(10).toBoolean, coffeeRooms = cols(11).toBoolean, hidden = cols(12).toBoolean,
-              order = cols(9).toInt, picture = cols(13))
+          val person = new Person(
+              lastName = cols(0), firstName = cols(1), initials = cols(2).toUpperCase(),
+              category = new Category(cols(3)), status = new Status(cols(4)), 
+              location = new Location(cols(5)), room = cols(6), 
+              mail = cols(7), phone = cols(8), 
+              putzLabRooms = cols(9).toBoolean, putzCoffeeRooms = cols(10).toBoolean, putzTowels = cols(11).toBoolean, 
+              picture = cols(12), birthday = cols(13))
+          person.check
+          personnel += person
         } catch {
-          case e: Exception => e.printStackTrace()
+          case e: Exception =>
+            println(s"Error on $line")
+            e.printStackTrace()
         }
       }
     }
     bufferedSource.close
     personnel.toArray
   }
+  
+  lazy val people: Array[Person] = allPeople.filterNot(_.category.value.equals(CategoryList.ANCIEN))
 
 }
