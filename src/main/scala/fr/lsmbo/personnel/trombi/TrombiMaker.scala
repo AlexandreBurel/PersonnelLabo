@@ -97,30 +97,30 @@ class TrombiMaker {
   }
 
   private def addPicture(picture: File, line: Int) = {
-    //FileInputStream obtains input bytes from the image file
+    // FileInputStream obtains input bytes from the image file
     val inputStream = new FileInputStream(picture)
-    //Get the contents of an InputStream as a byte[].
+    // get the contents of an InputStream as a byte[].
     val bytes = IOUtils.toByteArray(inputStream)
-    //Adds a picture to the workbook
+    // adds a picture to the workbook
     val pictureIdx = workbook.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
-    //close the input stream
+    // close the input stream
     inputStream.close()
-    //Returns an object that handles instantiating concrete classes
+    // returns an object that handles instantiating concrete classes
     val helper = workbook.getCreationHelper()
-    //Creates the top-level drawing patriarch.
+    // creates the top-level drawing patriarch.
     val drawing = sheet.createDrawingPatriarch()
 
-    //Create an anchor that is attached to the worksheet
+    // create an anchor that is attached to the worksheet
     val anchor = helper.createClientAnchor()
 
-    //create an anchor with upper left cell _and_ bottom right cell
+    // create an anchor with upper left cell _and_ bottom right cell
     // TODO the picture should have an anchor on the top left corner, and a fixed height...
     anchor.setCol1(4) //Column D
     anchor.setCol2(5) //Column E
     anchor.setRow1(line) //Row 2
     anchor.setRow2(line + 7) //Row 8
 
-    //Creates a picture
+    // creates a picture
     drawing.createPicture(anchor, pictureIdx)
   }
 

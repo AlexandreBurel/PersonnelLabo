@@ -1,6 +1,6 @@
 package fr.lsmbo.personnel
 
-import java.nio.file.{CopyOption, Files, StandardCopyOption}
+import java.nio.file.{Files, StandardCopyOption}
 import java.time.{LocalDate, ZoneId}
 
 import org.apache.poi.ss.usermodel.{CellType, DateUtil, Row, WorkbookFactory}
@@ -40,7 +40,6 @@ object TableauDuPersonnel {
           getDate(row, 15), getString(row, 16), getString(row, 17), getDate(row, 18), getDate(row, 19),
           getString(row, 20), getString(row, 21), getString(row, 22), getNumeric(row, 23), getBoolean(row, 24),
           getBoolean(row, 25), getBoolean(row, 26), getString(row, 27), getDate(row, 28))
-//        if(initiales.getOrElse("").equals("AUH")) people.printDetails
         // one line per contract, so we need to merge people if same initials or same name
         val indexOfSamePeople = {
           if (initiales.isDefined) allPeople.indexWhere(_.initiales.equals(people.initiales))
@@ -49,10 +48,6 @@ object TableauDuPersonnel {
         if (indexOfSamePeople != -1) {
           // merge both (and if ambiguity, prefer newer contract)
           allPeople(indexOfSamePeople).merge(people)
-//          if(initiales.getOrElse("").equals("AUH")) {
-//            println(">> Merged with id "+indexOfSamePeople)
-//            allPeople(indexOfSamePeople).printDetails
-//          }
         } else {
           // add people to the list
           allPeople += people
@@ -104,14 +99,11 @@ object TableauDuPersonnel {
       } else if (row.getCell(index).getCellTypeEnum.equals(CellType.BLANK)) {
         None
       } else {
-//        val str = row.getCell(index).getRichStringCellValue.getString.toLowerCase
-//        Some(if (str.equals("true")) true else false)
         row.getCell(index).getRichStringCellValue.getString.toLowerCase match {
           case "true" => Some(true)
           case "false" => Some(false)
           case _ => None
         }
-//        None
       }
     } catch {
       case _: Throwable => None

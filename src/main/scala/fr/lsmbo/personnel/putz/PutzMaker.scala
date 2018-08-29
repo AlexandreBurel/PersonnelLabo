@@ -1,6 +1,5 @@
 package fr.lsmbo.personnel.putz
 
-import java.io
 import java.io.{FileInputStream, FileOutputStream}
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -46,15 +45,12 @@ class PutzMaker {
   // make sure that there is enough people for each task
   if (getLabRoomPutzablePeople(false).size < MIN_PUTZ_PEOPLE) {
     println(s"Warning, not enough people to putz the lab rooms ($MIN_PUTZ_PEOPLE required)")
-//    throw new Exception("Not enough people to putz the lab rooms")
   }
   if (getCoffeeRoomPutzablePeople(None, false).size < MIN_COFFEE_PEOPLE) {
     println(s"Warning, not enough people to putz the coffee rooms ($MIN_COFFEE_PEOPLE required)")
-//    throw new Exception("Not enough people to putz the coffee rooms")
   }
   if (getTowelsPutzablePeople(false).size < MIN_TOWEL_PEOPLE) {
     println(s"Warning, not enough people to putz the towels ($MIN_TOWEL_PEOPLE required)")
-//    throw new Exception("Not enough people to putz the towels")
   }
 
   // for each month, define a random list of putzable people and put them in each room
@@ -64,6 +60,8 @@ class PutzMaker {
     sheet.getRow(2).getCell(column).setCellValue(month + " " + year)
     // define lab people
     val labPeople = getLabRoomPutzablePeople()
+    println("Putz for "+month+":")
+    labPeople.filter(_.putzLabo.getOrElse(false)).foreach(p => println(s"\t${p.getInitiales}:\t${p.putzCounter} \t${p.solvantCounter}"))
     sheet.getRow(3).getCell(column).setCellValue(labPeople(0).selectMe + "\n" + labPeople(1).selectMe) // Labo LA1 R5
     sheet.getRow(4).getCell(column).setCellValue(labPeople(2).selectMe + "\n" + labPeople(3).selectMe) // Labo LA2 R5
     sheet.getRow(5).getCell(column).setCellValue(labPeople(4).selectMe + "\n" + labPeople(5).selectMe) // Labo LA3 R5
@@ -80,15 +78,17 @@ class PutzMaker {
     column += 1
   })
 
+  // remove template sheet
+  workbook.removeSheetAt(templateSheetIndex)
+
   // print a summary for the creator, in case there should be manual edition
   println("Putz people for lab rooms:")
-  personnel.filter(_.putzLabo.get).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}"))
+  personnel.filter(_.putzLabo.get).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}  (${p.solvantCounter})"))
 
   // write, close and quit
   val outputStream = new FileOutputStream(MyConfig.putzOutputFile)
   workbook.write(outputStream)
   workbook.close()
-
 
   private lazy val monthes: Array[String] = {
     // get month number (ie. May is 5)
@@ -115,31 +115,65 @@ class PutzMaker {
     val shuffledPeople = util.Random.shuffle(p.toList)
     // return this list sorted by counter
     // also sorting by solvantCounter to make sure that "Elimination day" is fairly randomized (not everytime the same person)
-    shuffledPeople.sortBy(p => (p.putzCounter, p.solvantCounter)).toArray
+    shuffledPeople.sortBy(p => (p.putzCounter, -p.solvantCounter)).toArray
   }
 
   private def getLabRoomPutzablePeople(autoFill: Boolean = true): Array[People] = {
-//    shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false)))
-    val list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false))): _*)
-    if(autoFill) while(list.size < MIN_PUTZ_PEOPLE) list.append(ANONYMOUS)
-    list.toArray
+//    val list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false))): _*)
+//    if(autoFill) while(list.size < MIN_PUTZ_PEOPLE) list.append(ANONYMOUS)
+//    if(autoFill) {
+//      var i = 0
+//      while(list.size < MIN_PUTZ_PEOPLE) {
+//        list.append(list(i))
+//        i += 1
+//      }
+//    }
+//    list.toArray
+    val list = shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false)))
+    if(autoFill) autoFillList(list, MIN_PUTZ_PEOPLE, true) else list
   }
 
   private def getCoffeeRoomPutzablePeople(locationOpt: Option[LocationList.Value], autoFill: Boolean = true): Array[People] = {
-//    if(locationOpt.isDefined)
-//      shuffleAndOrder(personnel.filter(p => p.putzCafe.get && p.batiment.getOrElse("").equals(locationOpt.get.toString)))
-//    else
-//      shuffleAndOrder(personnel.filter(_.putzCafe.get))
-    var list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzCafe.get)): _*)
-    if(locationOpt.isDefined) list = list.filter(p => p.batiment.getOrElse("").equals(locationOpt.get.toString))
-    if(autoFill) while(list.size < MIN_COFFEE_PEOPLE) list.append(ANONYMOUS)
-    list.toArray
+//    var list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzCafe.get)): _*)
+    ////    if(locationOpt.isDefined) list = list.filter(p => p.batiment.getOrElse("").equals(locationOpt.get.toString))
+    //////    if(autoFill) while(list.size < MIN_COFFEE_PEOPLE) list.append(ANONYMOUS)
+    ////    if(autoFill) {
+    ////      var i = 0
+    ////      while(list.size < MIN_COFFEE_PEOPLE) {
+    ////        list.append(list(i))
+    ////        i += 1
+    ////      }
+    ////    }
+    ////    list.toArray
+    val list = shuffleAndOrder(personnel.filter(p => {
+      p.putzCafe.getOrElse(false) && (if(locationOpt.isDefined) p.batiment.getOrElse("").equals(locationOpt.get.toString) else true)
+    }))
+    if(autoFill) autoFillList(list, MIN_COFFEE_PEOPLE) else list
   }
 
-//  private def getTowelsPutzablePeople: Array[People] = shuffleAndOrder(personnel.filter(_.putzTorchon.get))
   private def getTowelsPutzablePeople(autoFill: Boolean = true): Array[People] = {
-    val list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzTorchon.get)): _*)
-    if(autoFill) while(list.size < MIN_TOWEL_PEOPLE) list.append(ANONYMOUS)
-    list.toArray
+//    val list = ArrayBuffer(shuffleAndOrder(personnel.filter(_.putzTorchon.get)): _*)
+//    if(autoFill) while(list.size < MIN_TOWEL_PEOPLE) list.append(ANONYMOUS)
+//    list.toArray
+    val list = shuffleAndOrder(personnel.filter(_.putzTorchon.getOrElse(false)))
+    if(autoFill) autoFillList(list, MIN_TOWEL_PEOPLE) else list
   }
+
+  private def autoFillList(list: Array[People], limit: Int, preferSolvantPeople: Boolean = false): Array[People] = {
+    if(list.size >= limit) list
+    else {
+      var i = 0
+      if(preferSolvantPeople) {
+        if(i == 0) i = 12
+        if(i == 13) i = 0
+      }
+      val completeList = ArrayBuffer(list: _*)
+      while(completeList.size < limit) {
+        completeList.append(list(i))
+        i += 1
+      }
+      completeList.toArray
+    }
+  }
+
 }

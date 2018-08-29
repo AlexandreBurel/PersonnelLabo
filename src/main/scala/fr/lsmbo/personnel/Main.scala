@@ -1,35 +1,46 @@
 package fr.lsmbo.personnel
 
+import java.io.FileWriter
+
 import fr.lsmbo.personnel.anniv.AnnivMaker
 import fr.lsmbo.personnel.putz.PutzMaker
 import fr.lsmbo.personnel.trombi.TrombiMaker
 
 object Main extends App {
-  
+
+  lazy val artefactId = getClass.getPackage.getImplementationTitle
+  lazy val version = getClass.getPackage.getImplementationVersion
+
   override def main(args: Array[String]): Unit = {
 
-//    println("initiales\tprenom\tnom\tcorps\tmail\tbatiment\tbureau\ttelephone\tmasterOrigine\tfinancementOuEtablissementDeRattachement\tdateArrivee\tdateDepart\tdureeMois\tresponsable1\tresponsable2\tdateSoutenance\tdevenir\tprecisionDevenir\tdateEmbauchePremierPoste\thdr\tdateValiditeSST\tcommentaire\tsexe\tquotite\tputzLabo\tputzCafe\tputzTorchon\tphoto\tanniversaire")
-//    TableauDuPersonnel.getPersonnel().foreach(p => {
-////      println(p.toString + "\t" + p.putzLabo.getOrElse("") + "\t" + p.putzCafe.getOrElse("") + "\t" + p.putzTorchon.getOrElse(""))
-//      p.printDetails
-//    })
-
-    args.foreach(_ match{
+    args.foreach(_ match {
       case "putz" => new PutzMaker
       case "trombi" => new TrombiMaker
       case "anniv" => new AnnivMaker
       case _ =>
     })
-//    args.foreach(arg => {
-//      arg match {
-////        case "putz" => new PutzGenerator
-//        case "putz" => new PutzMaker
-////        case "trombi" => new Trombinoscope
-//        case "trombi" => new TrombiMaker
-//        case _ =>
-//      }
-//    })
 
+    if (args.size == 0) {
+      generateScript("Anniversaires.bat", "anniv")
+      generateScript("PutzPlanning.bat", "putz")
+      generateScript("Trombinoscope.bat", "trombi")
+    }
+
+  }
+
+  private def generateScript(name: String, function: String): Unit = {
+    try {
+      val writer: FileWriter = new FileWriter(name)
+      writer.write("@echo off\r\n")
+      writer.write("\r\n")
+      writer.write(s"java -jar ${artefactId}-${version}.jar ${function}\r\n") // write new line
+      writer.write("\r\n")
+      writer.write("pause\r\n")
+      writer.close()
+    } catch {
+      case e: java.io.IOException => e.printStackTrace()
+      case t: Throwable => t.printStackTrace()
+    }
   }
 
 }

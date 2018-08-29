@@ -4,8 +4,8 @@
 
 	<groupId>fr.lsmbo.personnel</groupId>
 	<artifactId>PersonnelLSMBO</artifactId>
-	<description>Nothing to say...</description>
-	<version>0.0.1-SNAPSHOT</version>
+    <description>Outil pour générer des fichiers liés au personnel du LSMBO</description>
+	<version>1.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.date>2017-09-13</project.build.date>
@@ -110,6 +110,8 @@
 							<mainClass>fr.lsmbo.personnel.Main</mainClass>
 							<classpathLayoutType>custom</classpathLayoutType>
 							<customClasspathLayout>lib/$${artifact.artifactId}-$${artifact.version}$${dashClassifier?}.$${artifact.extension}</customClasspathLayout>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 						</manifest>
 					</archive>
 				</configuration>

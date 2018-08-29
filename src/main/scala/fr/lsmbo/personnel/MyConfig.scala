@@ -8,13 +8,11 @@ object MyConfig {
   
   lazy val config: Config = ConfigFactory.load(this.getClass().getClassLoader(), "application.conf")
 
-//  lazy val peopleFile: URL = new File("classes/"+config.getString("people.file.path")).toURI.toURL()
   lazy val personnelFile = new File(config.getString("people.file.path"))
 
   lazy val putzTemplateFile: File = {
     try {
       new File(config.getString("putz.template.file.path"))
-//      new File(this.getClass().getClassLoader().getResource(config.getString("putz.template.file.path")).getPath)
     } catch {
       case e: Exception =>
         println("Error "+e.getMessage)
@@ -24,7 +22,6 @@ object MyConfig {
   lazy val putzOutputFile: File = {
     try {
       new File(config.getString("putz.output.file.path"))
-//      new File(this.getClass().getClassLoader().getResource(config.getString("putz.output.file.path")).getPath)
     } catch {
       case e: Exception => new File("PutzPlanning.xlsx")
     }

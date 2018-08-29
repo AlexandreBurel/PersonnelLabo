@@ -71,7 +71,6 @@ case class People(var initiales: String = "",
   def getPicture: File = {
     if (!photo.isEmpty) {
       val file = new File(MyConfig.trombiPictureFolder.getAbsolutePath + "/" + photo.get)
-      //      println(getInitiales + "'s picture: " + file.getAbsolutePath)
       if (file.exists() && file.isFile()) file else MyConfig.defaultPicture
     } else MyConfig.defaultPicture
   }
@@ -84,7 +83,6 @@ case class People(var initiales: String = "",
       else if (!people.dateArrivee.isEmpty && dateArrivee.isEmpty) false
       else true
     }
-    //    if(initiales.equals("AUH")) println(">> Merge two people, current one is "+(if(currentIsNewer) "newer" else "older"))
     // merge information, prefer newer file if any ambiguity
     if (initiales.equals("")) initiales = people.initiales
     nom = mergeOptions(nom, people.nom, currentIsNewer)
@@ -104,7 +102,6 @@ case class People(var initiales: String = "",
     putzLabo = mergeOptions(putzLabo, people.putzLabo, currentIsNewer)
     putzCafe = mergeOptions(putzCafe, people.putzCafe, currentIsNewer)
     putzTorchon = mergeOptions(putzTorchon, people.putzTorchon, currentIsNewer)
-    //    if(initiales.equals("AUH")) photo = mergeOptionsD(photo, people.photo, currentIsNewer)
     //    else
     photo = mergeOptions(photo, people.photo, currentIsNewer)
     anniversaire = mergeOptions(anniversaire, people.anniversaire, currentIsNewer)
