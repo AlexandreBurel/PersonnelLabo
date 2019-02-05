@@ -1,6 +1,5 @@
 package fr.lsmbo.personnel.putz
 
-import java.io.{FileInputStream, FileOutputStream}
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -9,37 +8,23 @@ import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFWorkbook}
 
 import scala.collection.mutable.ArrayBuffer
 
-class PutzMaker {
+class PutzMaker(workbook: XSSFWorkbook) {
 
   final val MIN_PUTZ_PEOPLE = 18
   final val MIN_COFFEE_PEOPLE = 2
   final val MIN_TOWEL_PEOPLE = 1
   final val ANONYMOUS = new People(initiales = "<>")
 
-  // the excel file must exist and have a template sheet !
-  if (!MyConfig.putzTemplateFile.exists) {
-    throw new Exception("Xlsx file '" + MyConfig.putzTemplateFile.getAbsolutePath + "' does not exist !")
-  }
-
-  // directly write output file
-  val workbook: XSSFWorkbook = {
-    val fileInputStream = new FileInputStream(MyConfig.putzTemplateFile)
-    new XSSFWorkbook(fileInputStream)
-  }
   // check for the template sheet
-  val templateSheetIndex = workbook.getSheetIndex("Template")
+  val templateSheetIndex = workbook.getSheetIndex("PUTZ")
   if (templateSheetIndex < 0) {
     throw new Exception("Template sheet does not exist !")
   }
-  // make sure the sheet name is new
-  var sheetName = monthes.head + "-" + monthes.last + " " + year
-  var i = 2
-  while (workbook.getSheetIndex(sheetName) >= 0) {
-    sheetName = monthes.head + "-" + monthes.last + " " + year + " (" + i + ")"
-    i += 1
-  }
-  // create a new sheet named like "janvier-mai 2017" based on Template sheet
-  val sheet: XSSFSheet = workbook.cloneSheet(templateSheetIndex, sheetName)
+  // create a new name
+  MyConfig.putzTitle = "Putz - " + monthes.head + "-" + monthes.last + " " + year
+  // create a new sheet named like "Putz - janvier-mai 2017" based on Template sheet
+  // TODO why do we clone the sheet instead of just renaming it ?
+  val sheet: XSSFSheet = workbook.cloneSheet(templateSheetIndex, MyConfig.putzTitle)
 
   val personnel = TableauDuPersonnel.getPersonnel()
   // make sure that there is enough people for each task
@@ -60,8 +45,8 @@ class PutzMaker {
     sheet.getRow(2).getCell(column).setCellValue(month + " " + year)
     // define lab people
     val labPeople = getLabRoomPutzablePeople()
-    println("Putz for "+month+":")
-    labPeople.filter(_.putzLabo.getOrElse(false)).foreach(p => println(s"\t${p.getInitiales}:\t${p.putzCounter} \t${p.solvantCounter}"))
+//    println("Putz for "+month+":")
+//    labPeople.filter(_.putzLabo.getOrElse(false)).foreach(p => println(s"\t${p.getInitiales}:\t${p.putzCounter} \t${p.solvantCounter}"))
     sheet.getRow(3).getCell(column).setCellValue(labPeople(0).selectMe + "\n" + labPeople(1).selectMe) // Labo LA1 R5
     sheet.getRow(4).getCell(column).setCellValue(labPeople(2).selectMe + "\n" + labPeople(3).selectMe) // Labo LA2 R5
     sheet.getRow(5).getCell(column).setCellValue(labPeople(4).selectMe + "\n" + labPeople(5).selectMe) // Labo LA3 R5
@@ -82,13 +67,8 @@ class PutzMaker {
   workbook.removeSheetAt(templateSheetIndex)
 
   // print a summary for the creator, in case there should be manual edition
-  println("Putz people for lab rooms:")
-  personnel.filter(_.putzLabo.getOrElse(false)).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}  (${p.solvantCounter})"))
-
-  // write, close and quit
-  val outputStream = new FileOutputStream(MyConfig.putzOutputFile)
-  workbook.write(outputStream)
-  workbook.close()
+//  println("Putz people for lab rooms:")
+//  personnel.filter(_.putzLabo.getOrElse(false)).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}  (${p.solvantCounter})"))
 
   private lazy val monthes: Array[String] = {
     // get month number (ie. May is 5)

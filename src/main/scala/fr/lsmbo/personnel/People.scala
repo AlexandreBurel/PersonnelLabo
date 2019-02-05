@@ -1,6 +1,6 @@
 package fr.lsmbo.personnel
 
-import java.io.File
+import java.io.{File, FileInputStream, InputStream}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -68,10 +68,11 @@ case class People(var initiales: String = "",
     selectMe
   }
 
-  def getPicture: File = {
+  def getPictureAsStream: InputStream = {
     if (!photo.isEmpty) {
       val file = new File(MyConfig.trombiPictureFolder.getAbsolutePath + "/" + photo.get)
-      if (file.exists() && file.isFile()) file else MyConfig.defaultPicture
+      if (file.exists() && file.isFile()) new FileInputStream(file)
+      else MyConfig.defaultPicture
     } else MyConfig.defaultPicture
   }
 

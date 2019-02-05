@@ -1,7 +1,6 @@
 package fr.lsmbo.personnel.anniv
 
 import java.awt.Color
-import java.io.{FileNotFoundException, FileOutputStream, IOException}
 import java.time.LocalDate
 
 import fr.lsmbo.personnel.{MyConfig, People, TableauDuPersonnel}
@@ -9,16 +8,16 @@ import org.apache.poi.ss.usermodel.{BorderStyle, FillPatternType, HorizontalAlig
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.{XSSFCellStyle, XSSFColor, XSSFWorkbook}
 
-class AnnivMaker {
+class AnnivMaker(workbook: XSSFWorkbook) {
 
   final val DEFAULT_LINE_HEIGHT: Short = 380
   final val TITLE_LINE_HEIGHT: Short = 471
 
-  private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDefined).sortBy(_.anniversaire.get.toEpochDay)
+// use the same year for everybody
+private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDefined).sortBy(_.anniversaire.get.withYear(2018).toEpochDay)
 
   // create workbook and sheet
-  private var workbook: XSSFWorkbook = new XSSFWorkbook
-  private val sheet = workbook.createSheet("Anniversaires LSMBO")
+  private val sheet = workbook.createSheet(MyConfig.annivTitle)
   writeFile()
 
   private val missingBirthday = TableauDuPersonnel.getPersonnel().filter(!_.anniversaire.isDefined)
@@ -58,16 +57,6 @@ class AnnivMaker {
     sheet.setColumnWidth(3, 18 * 260)
     sheet.setColumnWidth(4, 10 * 260)
 
-    // write data to file
-    try {
-      val outputStream = new FileOutputStream(MyConfig.birthdayOutputFile)
-      workbook.write(outputStream)
-      workbook.close()
-    } catch {
-      case e: FileNotFoundException => e.printStackTrace
-      case e: IOException => e.printStackTrace
-      case e: Exception => e.printStackTrace
-    }
   }
 
   private def addPeople(people: People, line: Int, top: Boolean = false, bottom: Boolean = false): Unit = {

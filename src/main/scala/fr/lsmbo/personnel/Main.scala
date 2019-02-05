@@ -1,10 +1,12 @@
 package fr.lsmbo.personnel
 
-import java.io.FileWriter
+import java.io.FileOutputStream
 
 import fr.lsmbo.personnel.anniv.AnnivMaker
+import fr.lsmbo.personnel.map.MapMaker
 import fr.lsmbo.personnel.putz.PutzMaker
 import fr.lsmbo.personnel.trombi.TrombiMaker
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
 object Main extends App {
 
@@ -13,34 +15,43 @@ object Main extends App {
 
   override def main(args: Array[String]): Unit = {
 
-    args.foreach(_ match {
-      case "putz" => new PutzMaker
-      case "trombi" => new TrombiMaker
-      case "anniv" => new AnnivMaker
-      case _ =>
-    })
-
-    if (args.size == 0) {
-      generateScript("Anniversaires.bat", "anniv")
-      generateScript("PutzPlanning.bat", "putz")
-      generateScript("Trombinoscope.bat", "trombi")
-    }
-
-  }
-
-  private def generateScript(name: String, function: String): Unit = {
+    // create a single file with one sheet per class
+    val workbook: XSSFWorkbook = new XSSFWorkbook(MyConfig.getTemplateFileStream)
     try {
-      val writer: FileWriter = new FileWriter(name)
-      writer.write("@echo off\r\n")
-      writer.write("\r\n")
-      writer.write(s"java -jar ${artefactId}-${version}.jar ${function}\r\n") // write new line
-      writer.write("\r\n")
-      writer.write("pause\r\n")
-      writer.close()
+      new PutzMaker(workbook)
     } catch {
-      case e: java.io.IOException => e.printStackTrace()
-      case t: Throwable => t.printStackTrace()
+      case e => e.printStackTrace()
     }
+    try {
+      new TrombiMaker(workbook)
+    } catch {
+      case e => e.printStackTrace()
+    }
+    try {
+      new MapMaker(workbook)
+    } catch {
+      case e => e.printStackTrace()
+    }
+    try {
+      new AnnivMaker(workbook)
+    } catch {
+      case e => e.printStackTrace()
+    }
+
+    // set sheets order
+    workbook.setSheetOrder(MyConfig.annivTitle, 0)
+    workbook.setSheetOrder(MyConfig.mapTitle, 1)
+    workbook.setSheetOrder(MyConfig.putzTitle, 2)
+    workbook.setSheetOrder(MyConfig.trombiTitle, 3)
+    workbook.setActiveSheet(1)
+
+    // TODO the first two sheets are selected by default
+
+    // write, close and quit
+    val outputStream = new FileOutputStream(MyConfig.outputFile)
+    workbook.write(outputStream)
+    workbook.close()
+
   }
 
 }

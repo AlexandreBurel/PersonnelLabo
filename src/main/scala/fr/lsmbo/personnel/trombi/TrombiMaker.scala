@@ -7,7 +7,7 @@ import org.apache.poi.ss.usermodel.{BorderStyle, FillPatternType, Workbook}
 import org.apache.poi.util.IOUtils
 import org.apache.poi.xssf.usermodel.{XSSFColor, XSSFRow, XSSFWorkbook}
 
-class TrombiMaker {
+class TrombiMaker(workbook: XSSFWorkbook) {
 
   final val SEPARATOR_ROW_HEIGHT: Short = 100
   final val SMALL_ROW_HEIGHT: Short = 120
@@ -19,8 +19,7 @@ class TrombiMaker {
   }
 
   // get report file path
-  var workbook: XSSFWorkbook = new XSSFWorkbook
-  val sheet = workbook.createSheet("Trombinoscope LSMBO")
+  val sheet = workbook.createSheet(MyConfig.trombiTitle)
 
   // column width (must fit in an A4 page)
   sheet.setColumnWidth(0, 22 * 260)
@@ -64,7 +63,7 @@ class TrombiMaker {
       // eighth line is a separator
       addSeparation(line+7)
       // add picture
-      addPicture(p.getPicture, line)
+      addPicture(p.getPictureAsStream, line)
       // increment first line number
       line += 8
 
@@ -78,27 +77,13 @@ class TrombiMaker {
     } catch {
       case e: FileNotFoundException =>
         println(s"Error on ${p.toString}: ${e.getMessage}")
-        println("Path of picture: "+p.getPicture.getAbsolutePath)
       case e: Exception =>
         println(s"Error on ${p.toString}: ${e.getMessage}")
         e.printStackTrace()
     }
   })
 
-  // write data to file
-  try {
-    val outputStream = new FileOutputStream(MyConfig.trombiOutputFile)
-    workbook.write(outputStream)
-    workbook.close()
-  } catch {
-    case e: FileNotFoundException => e.printStackTrace
-    case e: IOException => e.printStackTrace
-    case e: Exception => e.printStackTrace
-  }
-
-  private def addPicture(picture: File, line: Int) = {
-    // FileInputStream obtains input bytes from the image file
-    val inputStream = new FileInputStream(picture)
+  private def addPicture(inputStream: InputStream, line: Int) = {
     // get the contents of an InputStream as a byte[].
     val bytes = IOUtils.toByteArray(inputStream)
     // adds a picture to the workbook
