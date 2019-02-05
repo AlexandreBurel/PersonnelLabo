@@ -147,7 +147,8 @@ case class People(var initiales: String = "",
     } else ""
   }
 
-  def isValid: Boolean = !initiales.equals("") && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
+//  def isValid: Boolean = !initiales.equals("") && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
+  def isValid: Boolean = !initiales.equals("") && (dateArrivee.isEmpty || dateArrivee.get.compareTo(LocalDate.now()) < 0) && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
 
   def getInitiales: String = {
     initiales match {

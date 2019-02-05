@@ -83,7 +83,7 @@ class PutzMaker {
 
   // print a summary for the creator, in case there should be manual edition
   println("Putz people for lab rooms:")
-  personnel.filter(_.putzLabo.get).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}  (${p.solvantCounter})"))
+  personnel.filter(_.putzLabo.getOrElse(false)).sortBy(_.putzCounter).foreach(p => println(s"${p.toString}: ${p.putzCounter}  (${p.solvantCounter})"))
 
   // write, close and quit
   val outputStream = new FileOutputStream(MyConfig.putzOutputFile)
