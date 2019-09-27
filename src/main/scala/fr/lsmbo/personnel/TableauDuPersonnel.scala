@@ -10,7 +10,11 @@ import scala.collection.mutable.ArrayBuffer
 object TableauDuPersonnel {
 
   def getPersonnel(currentPeopleOnly: Boolean = true): Array[People] = {
-    if (currentPeopleOnly) personnel.filter(_.isValid) else personnel
+    val list = if (currentPeopleOnly) personnel.filter(_.isValid) else personnel
+    list.foreach(p => {
+      p.isUnique = list.count(_.prenom.get.equals(p.prenom.get)) == 1
+    })
+    list
   }
 
   lazy val personnel: Array[People] = {
@@ -32,19 +36,23 @@ object TableauDuPersonnel {
       if (!isBlank(row)) {
         val initiales = getString(row, 0)
         val nom = getString(row, 1)
-        val prenom = getString(row, 2)
+        var prenom = getString(row, 2)
+        if(prenom.getOrElse("").equals("Liz-Paola")) prenom = Some("Paola") // just to avoid correcting manually later...
         val depart = getDate(row, 11)
         val people = new People(initiales.getOrElse(""), nom, prenom, Some(new Corps(getString(row, 3).getOrElse(""))),
           getString(row, 4), getString(row, 5), getString(row, 6), getString(row, 7), getString(row, 8),
           getString(row, 9), getDate(row, 10), depart, getNumeric(row, 12), getString(row, 13), getString(row, 14),
           getDate(row, 15), getString(row, 16), getString(row, 17), getDate(row, 18), getDate(row, 19),
           getString(row, 20), getString(row, 21), getString(row, 22), getNumeric(row, 23), getBoolean(row, 24),
-          getBoolean(row, 25), getBoolean(row, 26), getString(row, 27), getDate(row, 28))
+          getBoolean(row, 25), getBoolean(row, 26), getString(row, 27), getDate(row, 28), getBoolean(row, 29))
         // one line per contract, so we need to merge people if same initials or same name
-        val indexOfSamePeople = {
-          if (initiales.isDefined) allPeople.indexWhere(_.initiales.equals(people.initiales))
-          else allPeople.indexWhere(p => (p.nom.getOrElse("nom") + p.prenom.getOrElse("prenom")).equals(nom.getOrElse("") + prenom.getOrElse("")))
-        }
+//        val indexOfSamePeople = {
+//          if (initiales.isDefined) allPeople.indexWhere(_.initiales.equals(people.initiales))
+//          else allPeople.indexWhere(p => (p.nom.getOrElse("nom") + p.prenom.getOrElse("prenom")).equals(nom.getOrElse("") + prenom.getOrElse("")))
+//        }
+        val indexOfSamePeople = allPeople.indexWhere(p => {
+          (p.nom.getOrElse("nom") + p.prenom.getOrElse("prenom")).equals(nom.getOrElse("") + prenom.getOrElse("")) || initiales.getOrElse("") == p.getInitiales
+        })
         if (indexOfSamePeople != -1) {
           // merge both (and if ambiguity, prefer newer contract)
           allPeople(indexOfSamePeople).merge(people)

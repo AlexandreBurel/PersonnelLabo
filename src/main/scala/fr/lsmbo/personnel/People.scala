@@ -33,9 +33,11 @@ case class People(var initiales: String = "",
                   var putzTorchon: Option[Boolean] = None,
                   var photo: Option[String] = None,
                   var anniversaire: Option[LocalDate] = None,
+                  var presentAuLabo: Option[Boolean] = Some(false),
 
                   var putzCounter: Int = 0,
-                  var solvantCounter: Int = 0) {
+                  var solvantCounter: Int = 0,
+                  var isUnique: Boolean = true) {
 
   override def toString: String = s"${prenom.getOrElse("_")} ${nom.getOrElse("_")} ($initiales)"
 
@@ -59,9 +61,16 @@ case class People(var initiales: String = "",
     }
   }
 
-  def selectMe: String = {
+  def getDisambiguiedFirstName: String = {
+    if(isUnique) prenom.get else prenom.get+" ("+getInitiales+")"
+  }
+  def selectMe1: String = {
     putzCounter += 1
     getInitiales
+  }
+  def selectMe: String = {
+    putzCounter += 1
+    getDisambiguiedFirstName
   }
   def selectMeForSolvants: String = {
     solvantCounter += 1
@@ -106,6 +115,7 @@ case class People(var initiales: String = "",
     //    else
     photo = mergeOptions(photo, people.photo, currentIsNewer)
     anniversaire = mergeOptions(anniversaire, people.anniversaire, currentIsNewer)
+    presentAuLabo = mergeOptions(presentAuLabo, people.presentAuLabo, currentIsNewer)
     // these fields should only contain the newest value
     financementOuEtablissementDeRattachement = if (currentIsNewer) financementOuEtablissementDeRattachement else people.financementOuEtablissementDeRattachement
     dateArrivee = if (currentIsNewer) dateArrivee else people.dateArrivee
@@ -149,7 +159,11 @@ case class People(var initiales: String = "",
   }
 
 //  def isValid: Boolean = !initiales.equals("") && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
-  def isValid: Boolean = !initiales.equals("") && (dateArrivee.isEmpty || dateArrivee.get.compareTo(LocalDate.now()) < 0) && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
+//  def isValid: Boolean = {
+//    var valid = !initiales.equals("") && (dateArrivee.isEmpty || dateArrivee.get.compareTo(LocalDate.now()) < 0) && (dateDepart.isEmpty || dateDepart.get.compareTo(LocalDate.now()) > 0)
+//    valid
+//  }
+  def isValid: Boolean = presentAuLabo.getOrElse(false)
 
   def getInitiales: String = {
     initiales match {

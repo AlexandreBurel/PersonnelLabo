@@ -21,9 +21,11 @@ class MapMaker(workbook: XSSFWorkbook) {
     val cell = getCell(p)
     if(cell.isDefined) {
       if(cell.get.getStringCellValue.isEmpty) {
-        cell.get.setCellValue(p.prenom.getOrElse(p.initiales))
+//        cell.get.setCellValue(p.prenom.getOrElse(p.initiales))
+        cell.get.setCellValue(p.getDisambiguiedFirstName)
       } else {
-        cell.get.setCellValue(cell.get.getStringCellValue+", "+p.prenom.getOrElse(p.initiales))
+//        cell.get.setCellValue(cell.get.getStringCellValue+", "+p.prenom.getOrElse(p.initiales))
+        cell.get.setCellValue(cell.get.getStringCellValue+", "+p.getDisambiguiedFirstName)
       }
     }
   })
