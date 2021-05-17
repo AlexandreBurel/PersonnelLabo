@@ -1,11 +1,10 @@
 package fr.lsmbo.personnel.trombi
 
 import java.io._
-
 import fr.lsmbo.personnel._
 import org.apache.poi.ss.usermodel.{BorderStyle, FillPatternType, Workbook}
 import org.apache.poi.util.IOUtils
-import org.apache.poi.xssf.usermodel.{XSSFColor, XSSFRow, XSSFWorkbook}
+import org.apache.poi.xssf.usermodel.{XSSFColor, XSSFRow, XSSFSheet, XSSFWorkbook}
 
 class TrombiMaker(workbook: XSSFWorkbook) {
 
@@ -19,7 +18,7 @@ class TrombiMaker(workbook: XSSFWorkbook) {
   }
 
   // get report file path
-  val sheet = workbook.createSheet(MyConfig.trombiTitle)
+  val sheet: XSSFSheet = workbook.createSheet(MyConfig.trombiTitle)
 
   // column width (must fit in an A4 page)
   sheet.setColumnWidth(0, 22 * 260)
@@ -91,7 +90,7 @@ class TrombiMaker(workbook: XSSFWorkbook) {
     // close the input stream
     inputStream.close()
     // returns an object that handles instantiating concrete classes
-    val helper = workbook.getCreationHelper()
+    val helper = workbook.getCreationHelper
     // creates the top-level drawing patriarch.
     val drawing = sheet.createDrawingPatriarch()
 

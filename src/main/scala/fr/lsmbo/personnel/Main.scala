@@ -13,29 +13,27 @@ object Main extends App {
   lazy val artefactId = getClass.getPackage.getImplementationTitle
   lazy val version = getClass.getPackage.getImplementationVersion
 
-  override def main(args: Array[String]): Unit = {
-
     // create a single file with one sheet per class
     val workbook: XSSFWorkbook = new XSSFWorkbook(MyConfig.getTemplateFileStream)
     try {
       new PutzMaker(workbook)
     } catch {
-      case e => e.printStackTrace()
+      case e: Throwable => e.printStackTrace()
     }
     try {
       new TrombiMaker(workbook)
     } catch {
-      case e => e.printStackTrace()
+      case e: Throwable => e.printStackTrace()
     }
     try {
       new MapMaker(workbook)
     } catch {
-      case e => e.printStackTrace()
+      case e: Throwable => e.printStackTrace()
     }
     try {
       new AnnivMaker(workbook)
     } catch {
-      case e => e.printStackTrace()
+      case e: Throwable => e.printStackTrace()
     }
 
     // set sheets order
@@ -51,7 +49,5 @@ object Main extends App {
     val outputStream = new FileOutputStream(MyConfig.outputFile)
     workbook.write(outputStream)
     workbook.close()
-
-  }
 
 }

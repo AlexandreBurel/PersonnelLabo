@@ -8,7 +8,7 @@ import java.util.Calendar
 
 object MyConfig {
 
-  lazy val config: Config = ConfigFactory.load(this.getClass().getClassLoader(), "application.conf")
+  lazy val config: Config = ConfigFactory.load(this.getClass.getClassLoader, "application.conf")
 
   lazy val personnelFile = new File(config.getString("people.file.path"))
 
@@ -27,7 +27,7 @@ object MyConfig {
     try {
       config.getBoolean("putz.start.current.month")
     } catch {
-      case e: Exception => false
+      case _: Exception => false
     }
   }
   
@@ -35,7 +35,7 @@ object MyConfig {
     try {
       config.getInt("putz.number.of.monthes")
     } catch {
-      case e: Exception => 4
+      case _: Exception => 4
     }
   }
 

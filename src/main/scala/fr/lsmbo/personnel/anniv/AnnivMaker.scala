@@ -20,7 +20,7 @@ private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDef
   private val sheet = workbook.createSheet(MyConfig.annivTitle)
   writeFile()
 
-  private val missingBirthday = TableauDuPersonnel.getPersonnel().filter(!_.anniversaire.isDefined)
+  private val missingBirthday = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isEmpty)
   if(!missingBirthday.isEmpty) {
     println("\nPersonnes pour lesquelles on n'a pas la date d'anniversaire:")
     missingBirthday.foreach(p => println(p.toString))
@@ -47,7 +47,7 @@ private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDef
 
     // one line per people
     for (i <- list.indices) {
-      addPeople(list(i), i + 2, top = (i == 0), bottom = (i == list.size - 1))
+      addPeople(list(i), i + 2, top = i == 0, bottom = i == list.length - 1)
     }
 
     // adjust column sizes

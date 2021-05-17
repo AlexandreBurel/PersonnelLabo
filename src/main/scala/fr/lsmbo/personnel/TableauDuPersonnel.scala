@@ -39,7 +39,7 @@ object TableauDuPersonnel {
         var prenom = getString(row, 2)
         if(prenom.getOrElse("").equals("Liz-Paola")) prenom = Some("Paola") // just to avoid correcting manually later...
         val depart = getDate(row, 11)
-        val people = new People(initiales.getOrElse(""), nom, prenom, Some(new Corps(getString(row, 3).getOrElse(""))),
+        val people = People(initiales.getOrElse(""), nom, prenom, Some(new Corps(getString(row, 3).getOrElse(""))),
           getString(row, 4), getString(row, 5), getString(row, 6), getString(row, 7), getString(row, 8),
           getString(row, 9), getDate(row, 10), depart, getNumeric(row, 12), getString(row, 13), getString(row, 14),
           getDate(row, 15), getString(row, 16), getString(row, 17), getDate(row, 18), getDate(row, 19),
@@ -62,7 +62,7 @@ object TableauDuPersonnel {
         }
       }
     }
-    workbook.close
+    workbook.close()
     allPeople.toArray
   }
 
@@ -121,7 +121,7 @@ object TableauDuPersonnel {
   private def getDate(row: Row, index: Int): Option[LocalDate] = {
     try {
       if (row.getCell(index).getCellTypeEnum.equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(row.getCell(index))) {
-        Some(row.getCell(index).getDateCellValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+        Some(row.getCell(index).getDateCellValue.toInstant.atZone(ZoneId.systemDefault()).toLocalDate)
       } else None
     } catch {
       case _: Throwable => None

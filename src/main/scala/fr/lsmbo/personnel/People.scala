@@ -44,7 +44,7 @@ case class People(var initiales: String = "",
   def printDetails(details: Int = 0): Unit = {
     details match {
       case 0 => // all details
-        println(initiales + "\t" + prenom.getOrElse("") + "\t" + nom.getOrElse("") + "\t" + corps.getOrElse(new Corps(CorpsList.AUTRE, "Autre")).name + "\t" + mail.getOrElse("") + "\t" +
+        println(initiales + "\t" + prenom.getOrElse("") + "\t" + nom.getOrElse("") + "\t" + corps.getOrElse(Corps(CorpsList.AUTRE, "Autre")).name + "\t" + mail.getOrElse("") + "\t" +
           batiment.getOrElse("") + "\t" + bureau.getOrElse("") + "\t" + telephone.getOrElse("") + "\t" + masterOrigine.getOrElse("") + "\t" +
           financementOuEtablissementDeRattachement.getOrElse("") + "\t" + dateArrivee.getOrElse("") + "\t" + dateDepart.getOrElse("") + "\t" +
           dureeMois.getOrElse("") + "\t" + responsable1.getOrElse("") + "\t" + responsable2.getOrElse("") + "\t" + dateSoutenance.getOrElse("") + "\t" +
@@ -78,9 +78,9 @@ case class People(var initiales: String = "",
   }
 
   def getPictureAsStream: InputStream = {
-    if (!photo.isEmpty) {
+    if (photo.nonEmpty) {
       val file = new File(MyConfig.trombiPictureFolder.getAbsolutePath + "/" + photo.get)
-      if (file.exists() && file.isFile()) new FileInputStream(file)
+      if (file.exists() && file.isFile) new FileInputStream(file)
       else MyConfig.defaultPicture
     } else MyConfig.defaultPicture
   }
@@ -88,9 +88,9 @@ case class People(var initiales: String = "",
   def merge(people: People): Unit = {
     // find most recent item
     val currentIsNewer = {
-      if (!people.dateArrivee.isEmpty && !dateArrivee.isEmpty) dateArrivee.get.compareTo(people.dateArrivee.get) > 0
-      else if (people.dateArrivee.isEmpty && !dateArrivee.isEmpty) true
-      else if (!people.dateArrivee.isEmpty && dateArrivee.isEmpty) false
+      if (people.dateArrivee.isDefined && dateArrivee.nonEmpty) dateArrivee.get.compareTo(people.dateArrivee.get) > 0
+      else if (people.dateArrivee.isEmpty && dateArrivee.nonEmpty) true
+      else if (people.dateArrivee.isDefined && dateArrivee.isEmpty) false
       else true
     }
     // merge information, prefer newer file if any ambiguity
@@ -129,31 +129,31 @@ case class People(var initiales: String = "",
   }
 
   private def mergeOptions[T](val1: Option[T], val2: Option[T], firstIsNewer: Boolean): Option[T] = {
-    if (!val1.isEmpty && !val2.isEmpty) {
+    if (val1.isDefined && val2.isDefined) {
       if (firstIsNewer) val1 else val2
-    } else if (!val1.isEmpty && val2.isEmpty) val1
-    else if (val1.isEmpty && !val2.isEmpty) val2
+    } else if (val1.isDefined && val2.isEmpty) val1
+    else if (val1.isEmpty && val2.isDefined) val2
     else None
   }
 
-  private def mergeOptionsD[T](val1: Option[T], val2: Option[T], firstIsNewer: Boolean, verbose: Boolean = false): Option[T] = {
-    if (!val1.isEmpty && !val2.isEmpty) {
-      println("val1 ou val2 ? " + (if (firstIsNewer) "val1" else "val2"))
-      if (firstIsNewer) val1 else val2
-    } else if (!val1.isEmpty && val2.isEmpty) {
-      println("val1")
-      val1
-    } else if (val1.isEmpty && !val2.isEmpty) {
-      println("val2")
-      val2
-    } else {
-      println("None")
-      None
-    }
-  }
+//  private def mergeOptionsD[T](val1: Option[T], val2: Option[T], firstIsNewer: Boolean, verbose: Boolean = false): Option[T] = {
+//    if (val1.isDefined && val2.isDefined) {
+//      println("val1 ou val2 ? " + (if (firstIsNewer) "val1" else "val2"))
+//      if (firstIsNewer) val1 else val2
+//    } else if (val1.isDefined && val2.isEmpty) {
+//      println("val1")
+//      val1
+//    } else if (val1.isEmpty && val2.isDefined) {
+//      println("val2")
+//      val2
+//    } else {
+//      println("None")
+//      None
+//    }
+//  }
 
   def formattedBirthday(format: String = "dd MMMM"): String = {
-    if (!anniversaire.isEmpty) {
+    if (anniversaire.nonEmpty) {
       anniversaire.get.format(DateTimeFormatter.ofPattern(format))
     } else ""
   }

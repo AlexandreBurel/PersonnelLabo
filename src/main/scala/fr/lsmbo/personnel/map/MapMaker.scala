@@ -1,12 +1,12 @@
 package fr.lsmbo.personnel.map
 
 import fr.lsmbo.personnel.{MyConfig, People, TableauDuPersonnel}
-import org.apache.poi.xssf.usermodel.{XSSFCell, XSSFWorkbook}
+import org.apache.poi.xssf.usermodel.{XSSFCell, XSSFSheet, XSSFWorkbook}
 
 class MapMaker(workbook: XSSFWorkbook) {
 
   // check for the template sheet
-  val templateSheetIndex = workbook.getSheetIndex("MAP")
+  val templateSheetIndex: Int = workbook.getSheetIndex("MAP")
   if (templateSheetIndex < 0) {
     throw new Exception("Template sheet does not exist !")
   }
@@ -15,7 +15,7 @@ class MapMaker(workbook: XSSFWorkbook) {
   workbook.setSheetName(templateSheetIndex, MyConfig.mapTitle)
 
   // get the sheet
-  val sheet = workbook.getSheetAt(templateSheetIndex)
+  val sheet: XSSFSheet = workbook.getSheetAt(templateSheetIndex)
 
   TableauDuPersonnel.getPersonnel().foreach(p => {
     val cell = getCell(p)
@@ -56,6 +56,6 @@ class MapMaker(workbook: XSSFWorkbook) {
         }
       }
     }
-    return cellOpt
+    cellOpt
   }
 }

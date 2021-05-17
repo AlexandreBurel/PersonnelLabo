@@ -14,10 +14,10 @@ class PutzMaker(workbook: XSSFWorkbook) {
   final val MIN_PUTZ_PEOPLE = 12 // changed from 18 to 8 + 4 (8 labs and 4 solvants)
   final val MIN_COFFEE_PEOPLE = 2
   final val MIN_TOWEL_PEOPLE = 1
-  final val ANONYMOUS = new People(initiales = "<>")
+  final val ANONYMOUS = People(initiales = "<>")
 
   // check for the template sheet
-  val templateSheetIndex = workbook.getSheetIndex("PUTZ")
+  val templateSheetIndex: Int = workbook.getSheetIndex("PUTZ")
   if (templateSheetIndex < 0) {
     throw new Exception("Template sheet does not exist !")
   }
@@ -27,22 +27,22 @@ class PutzMaker(workbook: XSSFWorkbook) {
   // TODO why do we clone the sheet instead of just renaming it ?
   val sheet: XSSFSheet = workbook.cloneSheet(templateSheetIndex, MyConfig.putzTitle)
 
-  val personnel = TableauDuPersonnel.getPersonnel()
+  val personnel: Array[People] = TableauDuPersonnel.getPersonnel()
   // make sure that there is enough people for each task
-  if (getLabRoomPutzablePeople(false).size < MIN_PUTZ_PEOPLE) {
+  if (getLabRoomPutzablePeople(false).length < MIN_PUTZ_PEOPLE) {
     println(s"Warning, not enough people to putz the lab rooms ($MIN_PUTZ_PEOPLE required)")
   }
-  if (getCoffeeRoomPutzablePeople(None, false).size < MIN_COFFEE_PEOPLE) {
+  if (getCoffeeRoomPutzablePeople(None, autoFill = false).length < MIN_COFFEE_PEOPLE) {
     println(s"Warning, not enough people to putz the coffee rooms ($MIN_COFFEE_PEOPLE required)")
   }
-  if (getTowelsPutzablePeople(false).size < MIN_TOWEL_PEOPLE) {
+  if (getTowelsPutzablePeople(false).length < MIN_TOWEL_PEOPLE) {
     println(s"Warning, not enough people to putz the towels ($MIN_TOWEL_PEOPLE required)")
   }
 
   // for each month, define a random list of putzable people and put them in each room
   var i = 0
   val solvantPeople = new mutable.HashMap[Int, Array[People]]
-  val labPeople = getSolvantsPutzablePeople()
+  val labPeople: Array[People] = getSolvantsPutzablePeople()
   monthes.foreach(month => {
     val thisMonthPeople = labPeople.slice(4*i, 4*i+4)
 //    println("Solvants People for "+monthes(i)+": ")
@@ -117,7 +117,7 @@ class PutzMaker(workbook: XSSFWorkbook) {
     val monthPerNumber = Map(1 -> "Janvier", 2 -> "Février", 3 -> "Mars", 4 -> "Avril", 5 -> "Mai", 6 -> "Juin", 7 -> "Juillet", 8 -> "Août", 9 -> "Septembre", 10 -> "Octobre", 11 -> "Novembre", 12 -> "Decembre")
     val monthes = new ArrayBuffer[String]
     for (i <- currentMonthNumber until currentMonthNumber + MyConfig.numberOfMonthes) {
-      monthes += (if(i <= 12) monthPerNumber.get(i).get else monthPerNumber.get(i-12).get)
+      monthes += (if(i <= 12) monthPerNumber(i) else monthPerNumber(i - 12))
     }
     monthes.toArray
   }
@@ -134,7 +134,7 @@ class PutzMaker(workbook: XSSFWorkbook) {
     // return this list sorted by counter
     // also sorting by solvantCounter to make sure that "Elimination day" is fairly randomized (not everytime the same person)
 //    shuffledPeople.sortBy(p => (p.putzCounter, -p.solvantCounter)).toArray
-    shuffledPeople.sortBy(p => (p.putzCounter)).toArray
+    shuffledPeople.sortBy(p => p.putzCounter).toArray
   }
 
   private def getSolvantsPutzablePeople(autoFill: Boolean = true): Array[People] = {
@@ -157,7 +157,7 @@ class PutzMaker(workbook: XSSFWorkbook) {
 //    }
 //    list.toArray
     val list = shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false)))
-    if(autoFill) autoFillList(list, MIN_PUTZ_PEOPLE, true) else list
+    if(autoFill) autoFillList(list, MIN_PUTZ_PEOPLE, preferSolvantPeople = true) else list
   }
   private def getLabRoomPutzablePeople2(peopleToAvoid: Array[People]): Array[People] = {
     shuffleAndOrder(personnel.filter(_.putzLabo.getOrElse(false)).filter(p => !peopleToAvoid.contains(p)))
@@ -190,7 +190,7 @@ class PutzMaker(workbook: XSSFWorkbook) {
   }
 
   private def autoFillList(list: Array[People], limit: Int, preferSolvantPeople: Boolean = false): Array[People] = {
-    if(list.size >= limit) list
+    if(list.length >= limit) list
     else {
       var i = 0
       if(preferSolvantPeople) {
