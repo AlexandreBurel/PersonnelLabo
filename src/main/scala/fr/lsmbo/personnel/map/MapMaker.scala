@@ -19,14 +19,16 @@ class MapMaker(workbook: XSSFWorkbook) {
 
   TableauDuPersonnel.getPersonnel().foreach(p => {
     val cell = getCell(p)
-    if(cell.isDefined) {
-      if(cell.get.getStringCellValue.isEmpty) {
-//        cell.get.setCellValue(p.prenom.getOrElse(p.initiales))
-        cell.get.setCellValue(p.getDisambiguiedFirstName)
-      } else {
-//        cell.get.setCellValue(cell.get.getStringCellValue+", "+p.prenom.getOrElse(p.initiales))
-        cell.get.setCellValue(cell.get.getStringCellValue+", "+p.getDisambiguiedFirstName)
+    try {
+      if (cell.isDefined) {
+        if(cell.get.getStringCellValue.isEmpty) {
+          cell.get.setCellValue(p.getDisambiguiedFirstName)
+        } else {
+          cell.get.setCellValue(cell.get.getStringCellValue + ", " + p.getDisambiguiedFirstName)
+        }
       }
+    } catch {
+      case e: Exception => println(s"Error on cell ${if(cell.get != null) cell.get.getAddress else "<?>"} for ${p.toString} in ${p.batiment.get} bureau ${p.bureau.get}: ${e.getMessage}")
     }
   })
 
@@ -35,24 +37,26 @@ class MapMaker(workbook: XSSFWorkbook) {
     if(p.batiment.isDefined && p.bureau.isDefined) {
       if(p.batiment.get.equals("R2-N0")) {
         p.bureau.get match {
-          case "1" => cellOpt = Some(sheet.getRow(5).getCell(0)) // B6
-          case "3" => cellOpt = Some(sheet.getRow(8).getCell(0)) // B9
-          case "4" => cellOpt = Some(sheet.getRow(11).getCell(0)) // B12
-          case "5" => cellOpt = Some(sheet.getRow(14).getCell(0)) // B15
-          case "6" => cellOpt = Some(sheet.getRow(2).getCell(2)) // D3
-          case "7" => cellOpt = Some(sheet.getRow(11).getCell(2)) // D12
-          case "8" => cellOpt = Some(sheet.getRow(17).getCell(2)) // D18
+          case "1" => cellOpt = Some(sheet.getRow(4).getCell(0)) // A5
+          case "3" => cellOpt = Some(sheet.getRow(8).getCell(0)) // A9
+          case "4" => cellOpt = Some(sheet.getRow(10).getCell(0)) // A11
+          case "5" => cellOpt = Some(sheet.getRow(12).getCell(0)) // A13
+          case "6" => cellOpt = Some(sheet.getRow(2).getCell(3)) // D3
+          case "7" => cellOpt = Some(sheet.getRow(10).getCell(3)) // D11
+          case "8" => cellOpt = Some(sheet.getRow(18).getCell(3)) // D19
+          case _ => System.err.println(s"${p.prenom} ${p.nom} est dans le bureau '${p.bureau}' du ${p.batiment} qui n'est pas reconnu")
         }
       } else if(p.batiment.get.equals("R5-N0")) {
         p.bureau.get match {
-          case "1" => cellOpt = Some(sheet.getRow(5).getCell(4)) // F6
-          case "2" => cellOpt = Some(sheet.getRow(11).getCell(6)) // H12
-          case "3" => cellOpt = Some(sheet.getRow(8).getCell(4)) // F9
-          case "4" => cellOpt = Some(sheet.getRow(17).getCell(4)) // F18
-          case "6" => cellOpt = Some(sheet.getRow(11).getCell(4)) // F12
-          case "7" => cellOpt = Some(sheet.getRow(2).getCell(6)) // H3
-          case "8" => cellOpt = Some(sheet.getRow(14).getCell(4)) // F15
-          case "9" => cellOpt = Some(sheet.getRow(2).getCell(4)) // F3
+          case "1" => cellOpt = Some(sheet.getRow(4).getCell(6)) // G5
+          case "2" => cellOpt = Some(sheet.getRow(10).getCell(9)) // J11
+          case "3" => cellOpt = Some(sheet.getRow(6).getCell(6)) // G7
+          case "4" => cellOpt = Some(sheet.getRow(13).getCell(6)) // G14
+          case "6" => cellOpt = Some(sheet.getRow(8).getCell(6)) // G9
+          case "7" => cellOpt = Some(sheet.getRow(2).getCell(9)) // J3
+          case "8" => cellOpt = Some(sheet.getRow(11).getCell(6)) // G12
+          case "9" => cellOpt = Some(sheet.getRow(2).getCell(6)) // G3
+          case _ => System.err.println(s"${p.prenom} ${p.nom} est dans le bureau '${p.bureau}' du ${p.batiment} qui n'est pas reconnu")
         }
       }
     }

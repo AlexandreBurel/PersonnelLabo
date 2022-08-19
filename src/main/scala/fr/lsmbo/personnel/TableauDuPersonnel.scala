@@ -38,6 +38,8 @@ object TableauDuPersonnel {
         val nom = getString(row, 1)
         var prenom = getString(row, 2)
         if(prenom.getOrElse("").equals("Liz-Paola")) prenom = Some("Paola") // just to avoid correcting manually later...
+        else if(prenom.getOrElse("").equals("Jeewan-Babu")) prenom = Some("Jeewan")
+        else if(prenom.getOrElse("").equals("Noelia Milagros")) prenom = Some("Noelia")
         val depart = getDate(row, 11)
         val people = People(initiales.getOrElse(""), nom, prenom, Some(new Corps(getString(row, 3).getOrElse(""))),
           getString(row, 4), getString(row, 5), getString(row, 6), getString(row, 7), getString(row, 8),
@@ -71,14 +73,14 @@ object TableauDuPersonnel {
     var isBlank = true
     while (it.hasNext) {
       val c = it.next()
-      if (!c.getCellTypeEnum.equals(CellType.BLANK)) isBlank = false
+      if (!c.getCellType.equals(CellType.BLANK)) isBlank = false
     }
     isBlank
   }
 
   private def getString(row: Row, index: Int): Option[String] = {
     try {
-      row.getCell(index).getCellTypeEnum match {
+      row.getCell(index).getCellType match {
         case CellType.STRING => Some(row.getCell(index).getRichStringCellValue.getString)
         case CellType.NUMERIC => Some(row.getCell(index).getNumericCellValue.toInt.toString)
         case CellType.BOOLEAN => Some(row.getCell(index).getBooleanCellValue.toString)
@@ -91,7 +93,7 @@ object TableauDuPersonnel {
 
   private def getNumeric(row: Row, index: Int): Option[Int] = {
     try {
-      if (row.getCell(index).getCellTypeEnum.equals(CellType.NUMERIC)) {
+      if (row.getCell(index).getCellType.equals(CellType.NUMERIC)) {
         return Some(row.getCell(index).getNumericCellValue.toInt)
       }
     } catch {
@@ -102,9 +104,9 @@ object TableauDuPersonnel {
 
   private def getBoolean(row: Row, index: Int): Option[Boolean] = {
     try {
-      if (row.getCell(index).getCellTypeEnum.equals(CellType.BOOLEAN)) {
+      if (row.getCell(index).getCellType.equals(CellType.BOOLEAN)) {
         Some(row.getCell(index).getBooleanCellValue)
-      } else if (row.getCell(index).getCellTypeEnum.equals(CellType.BLANK)) {
+      } else if (row.getCell(index).getCellType.equals(CellType.BLANK)) {
         None
       } else {
         row.getCell(index).getRichStringCellValue.getString.toLowerCase match {
@@ -120,7 +122,7 @@ object TableauDuPersonnel {
 
   private def getDate(row: Row, index: Int): Option[LocalDate] = {
     try {
-      if (row.getCell(index).getCellTypeEnum.equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(row.getCell(index))) {
+      if (row.getCell(index).getCellType.equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(row.getCell(index))) {
         Some(row.getCell(index).getDateCellValue.toInstant.atZone(ZoneId.systemDefault()).toLocalDate)
       } else None
     } catch {

@@ -114,9 +114,10 @@ class TrombiMaker(workbook: XSSFWorkbook) {
     cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND)
     cellStyle.setFillBackgroundColor(0.toShort)
     cellStyle.setBorderTop(BorderStyle.THICK)
-    cellStyle.setTopBorderColor(new XSSFColor(java.awt.Color.WHITE))
+    cellStyle.setTopBorderColor(new XSSFColor(java.awt.Color.WHITE, null))
     cellStyle.setBorderBottom(BorderStyle.THICK)
-    cellStyle.setBottomBorderColor(new XSSFColor(java.awt.Color.WHITE))
+//    cellStyle.setBottomBorderColor(new XSSFColor(java.awt.Color.WHITE))
+    cellStyle.setBottomBorderColor(new XSSFColor(java.awt.Color.WHITE, null))
     for (i <- 0 to 5) row.createCell(i).setCellStyle(cellStyle)
     row.setHeight(SEPARATOR_ROW_HEIGHT)
   }

@@ -26,14 +26,14 @@ private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDef
     missingBirthday.foreach(p => println(p.toString))
   }
 
-  private def writeFile() {
+  private def writeFile(): Unit = {
 
     // add title on first line, make it big (Calibri, 18, bold, centered) and on three columns (B to D)
     var row = sheet.createRow(0)
     row.setHeight(TITLE_LINE_HEIGHT)
     var cell = row.createCell(1)
     cell.setCellValue(sheet.getSheetName.toUpperCase)
-    val bgColor = new XSSFColor(new Color(183, 222, 232))
+    val bgColor = new XSSFColor(new Color(183, 222, 232), null)
     cell.setCellStyle(getStyle(color = bgColor, bold = true, size = 18, centered = true, top = true, bottom = true, left = true))
     cell = row.createCell(2)
     cell.setCellStyle(getStyle(color = bgColor, top = true, bottom = true))
@@ -113,8 +113,8 @@ private val list = TableauDuPersonnel.getPersonnel().filter(_.anniversaire.isDef
         case 11 => new Color(196, 215, 155) // novembre
         case 12 => new Color(252, 213, 180) // decembre
         case _ => Color.WHITE // how is it possible to get here ???
-      })
-    } else new XSSFColor(Color.WHITE)
+      }, null)
+    } else new XSSFColor(Color.WHITE, null)
   }
 
 }
